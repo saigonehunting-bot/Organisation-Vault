@@ -6,15 +6,14 @@ name: WEEKLY CHECKUP
 
 
 on:
-push:
-
+  push:
 
 
 
 
 
 jobs:
-Weekly-checks:
+ Weekly-checks:
   runs-on: ubuntu-latest
 
 
