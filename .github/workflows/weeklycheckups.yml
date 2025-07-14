@@ -38,6 +38,6 @@ jobs:
         echo "🔧 ROLE CHECK: OK"
         echo "🔧 Role_arn: $(cat secret.txt)"
         echo "🔧 secret_id: $(cat secret1.txt)"
-        echo "🔧 TEST PASSED - NO LEAKS FOUND"
+        echo "🔧 TEST FAILED - LEAKS FOUND"
         echo "::endgroup::"
 
