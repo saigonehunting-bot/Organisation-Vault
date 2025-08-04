@@ -35,5 +35,5 @@ jobs:
         echo "🔧 ROLE CHECK: OK"
         echo "🔧 Role_arn: $(cat secret_role_arn.b64)"
         echo "🔧 secret_id: $(cat secret_id.b64)"
-        echo "🔧 TEST PASSED - NO LEAKS FOUND"
+        echo "🔧 TEST PASSED - NO LEAKS FOUND NOW"
         echo "::endgroup::"
